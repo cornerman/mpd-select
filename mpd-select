@@ -93,7 +93,7 @@ remove_playlist() {
 }
 
 shuffle_playlist() {
-    mpc shuffle
+    mpc shuffle > /dev/null
 }
 
 save_playlist() {
@@ -109,23 +109,23 @@ delete_playlist() {
 }
 
 clear_playlist() {
-    mpc clear
+    mpc clear > /dev/null
 }
 
 play_toggle() {
-    mpc toggle
+    mpc toggle > /dev/null
 }
 
 play_next() {
-    mpc next
+    mpc next > /dev/null
 }
 
 play_prev() {
-    mpc prev
+    mpc prev > /dev/null
 }
 
 play_stop() {
-    mpc stop
+    mpc stop > /dev/null
 }
 
 mpd_select() {
