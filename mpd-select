@@ -1,5 +1,8 @@
 #!/bin/bash
 
+DMENU="dmenu"
+PLAYLISTS=""
+
 next_playlist_position() {
     echo $(($(mpc playlist | wc -l) + 1))
 }
@@ -101,8 +104,42 @@ play_toggle() {
     mpc toggle
 }
 
-DMENU="dmenu"
-PLAYLISTS=""
+mpd_select() {
+    status=$(mpc | head -n -1 | sed ':a;N;$!ba;s/\n/ /g' | sed s/#.*$// | xargs -I{} echo -e '\n(toggle) {}')
+    selected=$(echo -e "${PLAYLISTS}playlist\nartist\nalbum\ntitle\nlibrary\nstart playlist\ngoto in playlist\nremove from playlist\nshuffle playlist\nclear playlist$status" | $DMENU -p "mpd-select: ")
+    case $selected in
+        playlist* )
+            custom=$(echo "$selected" | awk -F- '{print $2}')
+            add_playlist "$custom"
+            ;;
+        library )
+            add_library
+            ;;
+        "start playlist" )
+            start_playlist
+            ;;
+        "goto in playlist" )
+            goto_playlist
+            ;;
+        "remove from playlist" )
+            remove_playlist
+            ;;
+        "shuffle playlist" )
+            shuffle_playlist
+            ;;
+        "clear playlist" )
+            clear_playlist
+            mpd_select
+            ;;
+        \(toggle\)* )
+            play_toggle
+            ;;
+        * )
+            [ "$selected" = "" ] || add_query "$selected"
+            ;;
+    esac
+}
+
 while getopts d:p: opt; do
   case $opt in
   d)
@@ -116,35 +153,4 @@ done
 
 shift $((OPTIND - 1))
 
-status=$(mpc | head -n -1 | sed ':a;N;$!ba;s/\n/ /g' | sed s/#.*$// | xargs -I{} echo -e '\n(toggle) {}')
-selected=$(echo -e "${PLAYLISTS}playlist\nartist\nalbum\ntitle\nlibrary\nstart playlist\ngoto in playlist\nremove from playlist\nshuffle playlist\nclear playlist$status" | $DMENU -p "mpd-select: ")
-case $selected in
-    playlist* )
-        custom=$(echo "$selected" | awk -F- '{print $2}')
-        add_playlist "$custom"
-        ;;
-    library )
-        add_library
-        ;;
-    "start playlist" )
-        start_playlist
-        ;;
-    "goto in playlist" )
-        goto_playlist
-        ;;
-    "remove from playlist" )
-        remove_playlist
-        ;;
-    "shuffle playlist" )
-        shuffle_playlist
-        ;;
-    "clear playlist" )
-        clear_playlist
-        ;;
-    \(toggle\)* )
-        play_toggle
-        ;;
-    * )
-        [ "$selected" = "" ] || add_query "$selected"
-        ;;
-esac
+mpd_select
