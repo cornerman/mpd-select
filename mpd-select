@@ -97,6 +97,10 @@ clear_playlist() {
     mpc clear
 }
 
+play_toggle() {
+    mpc toggle
+}
+
 DMENU="dmenu"
 PLAYLISTS=""
 while getopts d:p: opt; do
@@ -112,7 +116,8 @@ done
 
 shift $((OPTIND - 1))
 
-selected=$(echo -e "${PLAYLISTS}playlist\nartist\nalbum\ntitle\nlibrary\nstart playlist\ngoto in playlist\nremove from playlist\nshuffle playlist\nclear playlist" | $DMENU -p "mpd-select: ")
+status=$(mpc | head -n -1 | sed ':a;N;$!ba;s/\n/ /g' | sed s/#.*$// | xargs -I{} echo -e '\n(toggle) {}')
+selected=$(echo -e "${PLAYLISTS}playlist\nartist\nalbum\ntitle\nlibrary\nstart playlist\ngoto in playlist\nremove from playlist\nshuffle playlist\nclear playlist$status" | $DMENU -p "mpd-select: ")
 case $selected in
     playlist* )
         custom=$(echo "$selected" | awk -F- '{print $2}')
@@ -135,6 +140,9 @@ case $selected in
         ;;
     "clear playlist" )
         clear_playlist
+        ;;
+    \(toggle\)* )
+        play_toggle
         ;;
     * )
         [ "$selected" = "" ] || add_query "$selected"
