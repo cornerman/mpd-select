@@ -96,6 +96,18 @@ shuffle_playlist() {
     mpc shuffle
 }
 
+save_playlist() {
+    local playlist=$(mpc lsplaylists | sort | $DMENU -p "save: ")
+    [ -n "$playlist" ] && mpc save "$playlist"
+}
+
+delete_playlist() {
+    local playlists=$(mpc lsplaylists | sort | $DMENU -p "save: ")
+    while read -r playlist; do
+        mpc rm "$playlist"
+    done <<< "$playlists"
+}
+
 clear_playlist() {
     mpc clear
 }
@@ -104,9 +116,21 @@ play_toggle() {
     mpc toggle
 }
 
+play_next() {
+    mpc next
+}
+
+play_prev() {
+    mpc prev
+}
+
+play_stop() {
+    mpc stop
+}
+
 mpd_select() {
-    status=$(mpc | head -n -1 | sed ':a;N;$!ba;s/\n/ /g' | sed s/#.*$// | xargs -I{} echo -e '\n(toggle) {}')
-    selected=$(echo -e "${PLAYLISTS}playlist\nartist\nalbum\ntitle\nlibrary\nstart playlist\ngoto in playlist\nremove from playlist\nshuffle playlist\nclear playlist$status" | $DMENU -p "mpd-select: ")
+    status=$(mpc | head -n -1 | sed ':a;N;$!ba;s/\n/ /g' | sed s/#.*$// | xargs -I{} echo -e '\nstop\n(toggle) {}')
+    selected=$(echo -e "${PLAYLISTS}playlist\nartist\nalbum\ntitle\nlibrary\nstart playlist\ngoto in playlist\nremove from playlist\nshuffle playlist\nsave playlist\ndelete playlist\nclear playlist\nnext\nprevious$status" | $DMENU -p "mpd-select: ")
     case $selected in
         playlist* )
             custom=$(echo "$selected" | awk -F- '{print $2}')
@@ -127,9 +151,24 @@ mpd_select() {
         "shuffle playlist" )
             shuffle_playlist
             ;;
+        "delete playlist" )
+            delete_playlist
+            ;;
+        "save playlist" )
+            save_playlist
+            ;;
         "clear playlist" )
             clear_playlist
             mpd_select
+            ;;
+        next )
+            play_next
+            ;;
+        previous )
+            play_prev
+            ;;
+        stop )
+            play_stop
             ;;
         \(toggle\)* )
             play_toggle

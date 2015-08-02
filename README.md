@@ -10,7 +10,8 @@ Control mpd with dmenu.
 - Remove songs from playlist
 - Shuffle playlist
 - Clear playlist
-- Toggle play/pause
+- Save/delete playlist
+- Control: play/pause/next/prev/stop
 - Show current song
 
 ## Options
