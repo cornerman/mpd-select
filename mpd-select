@@ -49,11 +49,11 @@ add_library() {
     local number=$(next_playlist_position)
     local all="[ALL]"
 
-    local artist=$(echo -e "$all\n$(mpc list artist)\n" | $DMENU -p "artist: ")
+    local artist=$(echo -e "$all\n$(mpc list artist)\n" | $DMENU -p "artist: " | tail -n 1)
     if [ "$artist" = "$all" ]; then
         mpc listall | mpc add;
     elif [ -n "$artist" ]; then
-        local album=$(echo -e "$all\n$(mpc list album artist "$artist")" | $DMENU -p "album: ")
+        local album=$(echo -e "$all\n$(mpc list album artist "$artist")" | $DMENU -p "album: " | tail -n 1)
         if [ "$album" = "$all" ]; then
             mpc findadd artist "$artist"
         elif [ -n "$album" ]; then
@@ -80,7 +80,7 @@ start_playlist() {
 }
 
 goto_playlist() {
-    local song=$(get_playlist | $DMENU -p "goto: ")
+    local song=$(get_playlist | $DMENU -p "goto: " | tail -n 1)
 
     [ -n "$song" ] && mpc play "${song%%\ *}"
 }
@@ -97,7 +97,7 @@ shuffle_playlist() {
 }
 
 save_playlist() {
-    local playlist=$(mpc lsplaylists | sort | $DMENU -p "save: ")
+    local playlist=$(mpc lsplaylists | sort | $DMENU -p "save: " | tail -n 1)
     [ -n "$playlist" ] && mpc save "$playlist"
 }
 
@@ -130,7 +130,7 @@ play_stop() {
 
 mpd_select() {
     status=$(mpc | head -n -1 | sed ':a;N;$!ba;s/\n/ /g' | sed s/#.*$// | xargs -I{} echo -e '\nstop\n(toggle) {}')
-    selected=$(echo -e "${PLAYLISTS}playlist\nartist\nalbum\ntitle\nlibrary\nstart playlist\ngoto in playlist\nremove from playlist\nshuffle playlist\nsave playlist\ndelete playlist\nclear playlist\nnext\nprevious$status" | $DMENU -p "mpd-select: ")
+    selected=$(echo -e "${PLAYLISTS}playlist\nartist\nalbum\ntitle\nlibrary\nstart playlist\ngoto in playlist\nremove from playlist\nshuffle playlist\nsave playlist\ndelete playlist\nclear playlist\nnext\nprevious$status" | $DMENU -p "mpd-select: " | tail -n 1)
     case $selected in
         playlist* )
             custom=$(echo "$selected" | awk -F- '{print $2}')
