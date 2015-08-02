@@ -2,6 +2,7 @@
 
 DMENU="dmenu"
 PLAYLISTS=""
+ALL_MARK="[ALL]"
 
 next_playlist_position() {
     echo $(($(mpc playlist | wc -l) + 1))
@@ -45,28 +46,47 @@ add_query() {
     fi
 }
 
-add_library() {
-    local number=$(next_playlist_position)
-    local all="[ALL]"
+select_songs() {
+    local artist="$1"
+    local album="$2"
+    local songs=$(echo -e "$ALL_MARK\n$(mpc list title album "$album")" | $DMENU -p "title: ")
+    if [ "$songs" = "$ALL_MARK" ]; then
+        mpc findadd album "$album"
+    elif [ -n "$songs" ]; then
+        while read -r song; do
+            mpc findadd title "$song"
+        done <<< "$songs"
+    else
+        select_album "$artist"
+    fi
+}
 
-    local artist=$(echo -e "$all\n$(mpc list artist)\n" | $DMENU -p "artist: " | tail -n 1)
-    if [ "$artist" = "$all" ]; then
+select_album() {
+    local artist="$1"
+    local album=$(echo -e "$ALL_MARK\n$(mpc list album artist "$artist")" | $DMENU -p "album: " | tail -n 1)
+    if [ "$album" = "$ALL_MARK" ]; then
+        mpc findadd artist "$artist"
+    elif [ -n "$album" ]; then
+        select_songs "$artist" "$album"
+    else
+        select_artist
+    fi
+}
+
+select_artist() {
+    [ -z "$all_artists" ] && all_artists=$(mpc list artist)
+    local artist=$(echo -e "$ALL_MARK\n$all_artists" | $DMENU -p "artist: " | tail -n 1)
+    if [ "$artist" = "$ALL_MARK" ]; then
         mpc listall | mpc add;
     elif [ -n "$artist" ]; then
-        local album=$(echo -e "$all\n$(mpc list album artist "$artist")" | $DMENU -p "album: " | tail -n 1)
-        if [ "$album" = "$all" ]; then
-            mpc findadd artist "$artist"
-        elif [ -n "$album" ]; then
-            local songs=$(echo -e "$all\n$(mpc list title album "$album")" | $DMENU -p "title: ")
-            if [ "$songs" = "$all" ]; then
-                mpc findadd album "$album"
-            else
-                while read -r song; do
-                    mpc findadd title "$song"
-                done <<< "$songs"
-            fi
-        fi
+        select_album "$artist"
     fi
+}
+
+add_library() {
+    local number=$(next_playlist_position)
+
+    select_artist
 
     play_next_playlist "$number"
 }
