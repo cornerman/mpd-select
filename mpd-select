@@ -149,8 +149,13 @@ play_stop() {
 }
 
 mpd_select() {
-    status=$(mpc | head -n -1 | sed ':a;N;$!ba;s/\n/ /g' | sed s/#.*$// | xargs -I{} echo -e '\nstop\n(toggle) {}')
-    selected=$(echo -e "${PLAYLISTS}artist\nalbum\ntitle\nlibrary\nstart playlist\ngoto in playlist\nremove from playlist\nshuffle playlist\nsave playlist\ndelete playlist\nclear playlist\nnext\nprevious$status" | $DMENU -p "mpd-select: " | tail -n 1)
+    if [ -z "$1" ]; then
+        status=$(mpc | head -n -1 | sed ':a;N;$!ba;s/\n/ /g' | sed s/#.*$// | xargs -I{} echo -e '\nstop\n(toggle) {}')
+        selected=$(echo -e "${PLAYLISTS}artist\nalbum\ntitle\nlibrary\ngoto in playlist\nremove from playlist\nshuffle playlist\nsave playlist\ndelete playlist\nclear playlist\nnext\nprevious\nstart$status" | $DMENU -p "mpd-select: " | tail -n 1)
+    else
+        selected="$1"
+    fi
+
     case $selected in
         playlist* )
             custom=$(echo "$selected" | awk -F- '{print $2}')
@@ -158,9 +163,6 @@ mpd_select() {
             ;;
         library )
             add_library
-            ;;
-        "start playlist" )
-            start_playlist
             ;;
         "goto in playlist" )
             goto_playlist
@@ -187,10 +189,13 @@ mpd_select() {
         previous )
             play_prev
             ;;
+        start )
+            start_playlist
+            ;;
         stop )
             play_stop
             ;;
-        \(toggle\)* )
+        toggle|\(toggle\)* )
             play_toggle
             ;;
         * )
@@ -214,4 +219,4 @@ done
 
 shift $((OPTIND - 1))
 
-mpd_select
+mpd_select "$*"

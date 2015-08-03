@@ -30,3 +30,8 @@ It is possible to select from custom playlists that are prefixed with a certain 
 ```
 mpd-select -p music -p radio
 ```
+
+In order to start in a specific mode, you can append the mode as an argument:
+```
+mpd-select library
+```
