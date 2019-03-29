@@ -150,8 +150,8 @@ play_stop() {
 
 mpd_select() {
     if [ -z "$1" ]; then
-        status=$(mpc | head -n -1 | sed ':a;N;$!ba;s/\n/ /g' | sed s/#.*$// | xargs -I{} echo -e '\nstop\n(toggle) {}')
-        selected=$(echo -e "${PLAYLISTS}artist\nalbum\ntitle\nlibrary\ngoto in playlist\nremove from playlist\nshuffle playlist\nsave playlist\ndelete playlist\nclear playlist\nnext\nprevious\nstart$status" | $DMENU -p "mpd-select: " | tail -n 1)
+        status=$(mpc current)
+        selected=$(echo -e "${PLAYLISTS}artist\nalbum\ntitle\nlibrary\ngoto in playlist\nremove from playlist\nshuffle playlist\nsave playlist\ndelete playlist\nclear playlist\nnext\nprevious\ntoggle\n$status" | $DMENU -p "mpd-select: " | tail -n 1)
     else
         selected="$1"
     fi
@@ -195,7 +195,7 @@ mpd_select() {
         stop )
             play_stop
             ;;
-        toggle|\(toggle\)* )
+        toggle )
             play_toggle
             ;;
         * )
